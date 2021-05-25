@@ -1,8 +1,14 @@
-Framework:
-1. I used FastApi to make my project.
-2. We need to make virtual environment. Command: py -m venv virtual_env
-3. to start server we have to activate virtual environment.(virtual_env/Scripts/activate.bat)
-4. Then pip install -r requirements.txt
-5. now we can launch the server with uvicorn main:app
-6. we can easy check functions with automatic documentation( http://127.0.0.1:8000/docs)
-7. I chose json data for saving reponses.
+live demo: https://da-plu-2021-jakubszuper.herokuapp.com/
+1. Framework:
+- I chose Fastapi Framework to my project.
+- I used PostgreSql and SqlAlchemy to save&read messages.
+- OAuth2 is responsible for auth users.
+2.Endpoints:
+-https://da-plu-2021-jakubszuper.herokuapp.com/Messages -Return a list of all Messages with Id's and number of views.(json format)
+- https://da-plu-2021-jakubszuper.herokuapp.com/Create_message - Create a new message and send to database. Endpoint accepts json format for example: 
+{"message": "hello world"}. Returning a json {id: id, message: 'message', counter: int}
+- https://da-plu-2021-jakubszuper.herokuapp.com/Get_Message/{MessageID} -Return a message with given ID. Also increment number of views(counter).
+-  https://da-plu-2021-jakubszuper.herokuapp.com/Update_message -Update message with given id. After update counter should be 0. scheme of payload: 
+{"id": "Enter your id","message": "hello world"}. Returning updated message.
+-https://da-plu-2021-jakubszuper.herokuapp.com/Message/{MessageID} -Delete the message with given ID. Returning "Deleted the message"
+You can check all operations with automatic documentation: https://da-plu-2021-jakubszuper.herokuapp.com/docs. Secured endpoints need auth for the using.(You can choose any login&password to enter)
