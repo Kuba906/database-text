@@ -6,10 +6,11 @@ import databases, sqlalchemy, uuid
 from pydantic import BaseModel, Field
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import List
+import os
 
 
 
-SQLALCHEMY_DATABASE_URL = "postgresql://usertest:usertest222@127.0.0.1:5432/dbtest"
+SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 # DATABASE_URL = "sqlite:///dbtest.db"
 
 database = databases.Database(SQLALCHEMY_DATABASE_URL)
