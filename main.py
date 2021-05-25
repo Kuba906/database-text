@@ -9,10 +9,10 @@ from typing import List
 
 
 
-DATABASE_URL = "postgresql://usertest:usertest222@127.0.0.1:5432/dbtest"
+SQLALCHEMY_DATABASE_URL = "postgresql://usertest:usertest222@127.0.0.1:5432/dbtest"
 # DATABASE_URL = "sqlite:///dbtest.db"
 
-database = databases.Database(DATABASE_URL)
+database = databases.Database(SQLALCHEMY_DATABASE_URL)
 metadata = sqlalchemy.MetaData()
 
 messages = sqlalchemy.Table(
@@ -25,7 +25,7 @@ messages = sqlalchemy.Table(
 )
 
 engine = sqlalchemy.create_engine(
-    DATABASE_URL
+    SQLALCHEMY_DATABASE_URL
 )
 metadata.create_all(engine)
 
