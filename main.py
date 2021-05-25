@@ -11,9 +11,9 @@ import os
 
 
 
-SQLALCHEMY_DATABASE_URL = "postgresql://usertest:usertest222@127.0.0.1:5432/dbtest" #connect to postgresql 
+#SQLALCHEMY_DATABASE_URL = "postgresql://usertest:usertest222@127.0.0.1:5432/dbtest" #connect to postgresql 
 # DATABASE_URL = "sqlite:///dbtest.db"
-#SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
+SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 
 database = databases.Database(SQLALCHEMY_DATABASE_URL)
 metadata = sqlalchemy.MetaData()
