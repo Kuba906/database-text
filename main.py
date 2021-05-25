@@ -6,17 +6,19 @@ import databases, sqlalchemy, uuid
 from pydantic import BaseModel, Field
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import List
+from fastapi import HTTPException
 import os
 
 
 
-SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
+SQLALCHEMY_DATABASE_URL = "postgresql://usertest:usertest222@127.0.0.1:5432/dbtest" #connect to postgresql 
 # DATABASE_URL = "sqlite:///dbtest.db"
+#SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
 
 database = databases.Database(SQLALCHEMY_DATABASE_URL)
 metadata = sqlalchemy.MetaData()
 
-messages = sqlalchemy.Table(
+messages = sqlalchemy.Table(                ##creating The Table with id, message and counter to show views
     "messages",
     metadata,
     sqlalchemy.Column("id", sqlalchemy.String, primary_key=True),
@@ -31,97 +33,109 @@ engine = sqlalchemy.create_engine(
 metadata.create_all(engine)
 
 
-class UserList(BaseModel):
+class MessagesList(BaseModel):
     id: str
     message: str
     counter: int
 
-class UserEntry(BaseModel):
+class MessageEntry(BaseModel):
     message: str = Field(...,example = "hello world")
 
-class UserUpdate(BaseModel):
+class MessageUpdate(BaseModel):
     id : str = Field(...,example = "Ente your id")
     message: str = Field(...,example = "hello world")
 
-class GetUser(BaseModel):
-    id : str = Field(...,example = "Ente your id")
-    message: str = Field(...,example = "hello world")
-    counter: int
-class UserDelete(BaseModel):
+
+class MessageDelete(BaseModel):
     id: str = Field(..., example = "enter your id")
 
 
 app = FastAPI()
 
-oauth_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth_scheme = OAuth2PasswordBearer(tokenUrl="token")           ##OAuth2 from FastApi
 @app.post("/token")
 async def token_generate(form_data: OAuth2PasswordRequestForm = Depends()):
     print(form_data)
     return {"access_token": form_data.username, "token_type": "bearer"}
 
 
-async def return_user(userId: str):
-    query = messages.select().where(messages.c.id == userId)
+async def return_message(Message: str):
+    query = messages.select().where(messages.c.id == Message)        #returning message from table
     return await database.fetch_one(query)
+
 
 @app.on_event("startup")
 async def startup():
     await database.connect()
 
+
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
 
-@app.get("/users", response_model=List[UserList])
-async def find_all_users():
+
+@app.get("/Messages", response_model=List[MessagesList])       ##returning all messages from the database
+async def find_all_Messages():
     query=messages.select()
 
     return await database.fetch_all(query)
 
-@app.post("/users", response_model= UserList)
-async def register_user(user: UserEntry,token: str = Depends(oauth_scheme)):
+
+@app.post("/Create_message", response_model= MessagesList)           ##creating new message with id
+async def register_message(mess: MessageEntry,token: str = Depends(oauth_scheme)):
     gID = str(uuid.uuid1())
+
+    if(mess.message == ""):
+        raise HTTPException(400,detail="bad Request")
+
     query = messages.insert(). values(
         id = gID,
-        message = user.message,
+        message = mess.message,
         counter = 0
     )
     await database.execute(query)
     return{
         "id": gID,
-        **user.dict(),
-        "message": user.message,
+        **mess.dict(),
+        "message": mess.message,
         "counter": 0
     }
 
-@app.put("/users/{userID}", response_model = UserList)
-async def find_user_by_id(userID: str):
+
+@app.put("/Get_Message/{MessageID}", response_model = MessagesList)       ##returning existing message from the database. I used put to modify the counter.
+async def find_message_by_id(MessageID: str):
     query = messages.update().\
-        where(messages.c.id ==userID).\
+        where(messages.c.id ==MessageID).\
             values(
                 counter = messages.c.counter +1
             )
     await database.execute(query)
 
-    return await return_user(userID)
+    return await return_message(MessageID)
 
 
 
-@app.put("/users", response_model = UserList)
-async def update_user(user: UserUpdate,token: str = Depends(oauth_scheme)):
+@app.put("/Update_message", response_model = MessagesList)                   ##updating existing message from the database
+async def update_message(Mess: MessageUpdate,token: str = Depends(oauth_scheme)):
+
+    if(Mess.message == ""):
+        raise HTTPException(400,detail="bad Request")
+
     query = messages.update().\
-        where(messages.c.id ==user.id).\
+        where(messages.c.id ==Mess.id).\
             values(
-                message = user.message,
+                message = Mess.message,
                 counter = 0
             )
     await database.execute(query)
 
-    return await return_user(user.id)
+    return await return_message(Mess.id)
 
-@app.delete("/users/{userID}")
-async def delete_user(user:UserDelete,token: str = Depends(oauth_scheme)):
-    query= messages.delete().where(messages.c.id == user.id)
+
+
+@app.delete("/Message/{userID}")                                      ##deleting existing message
+async def delete_message(Mess:MessageDelete,token: str = Depends(oauth_scheme)):
+    query= messages.delete().where(messages.c.id == Mess.id)
     await database.execute(query)
 
     return "Deleted the message"
