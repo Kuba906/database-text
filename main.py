@@ -3,17 +3,16 @@ from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import String
 from fastapi import FastAPI, Depends
 import databases, sqlalchemy, uuid
-from pydantic import BaseModel, Field
+from models import MessagesList, MessageEntry, MessageUpdate, MessageDelete
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import List
 from fastapi import HTTPException
 import os
 
 
-
-#SQLALCHEMY_DATABASE_URL = "postgresql://usertest:usertest222@127.0.0.1:5432/dbtest" #connect to postgresql 
+# SQLALCHEMY_DATABASE_URL = "postgresql://usertest:usertest222@127.0.0.1:5432/dbtest"  
 # DATABASE_URL = "sqlite:///dbtest.db"
-SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")
+SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL"  )#connect to postgresql
 
 database = databases.Database(SQLALCHEMY_DATABASE_URL)
 metadata = sqlalchemy.MetaData()
@@ -31,23 +30,6 @@ engine = sqlalchemy.create_engine(
     SQLALCHEMY_DATABASE_URL
 )
 metadata.create_all(engine)
-
-
-class MessagesList(BaseModel):
-    id: str
-    message: str
-    counter: int
-
-class MessageEntry(BaseModel):
-    message: str = Field(...,example = "hello world")
-
-class MessageUpdate(BaseModel):
-    id : str = Field(...,example = "Ente your id")
-    message: str = Field(...,example = "hello world")
-
-
-class MessageDelete(BaseModel):
-    id: str = Field(..., example = "enter your id")
 
 
 app = FastAPI()
@@ -85,7 +67,7 @@ async def find_all_Messages():
 async def register_message(mess: MessageEntry,token: str = Depends(oauth_scheme)):
     gID = str(uuid.uuid1())
 
-    if(mess.message == ""):
+    if(mess.message == "" or len(mess.message) >160):
         raise HTTPException(400,detail="bad Request")
 
     query = messages.insert(). values(
@@ -118,7 +100,7 @@ async def find_message_by_id(MessageID: str):
 @app.put("/Update_message", response_model = MessagesList)                   ##updating existing message from the database
 async def update_message(Mess: MessageUpdate,token: str = Depends(oauth_scheme)):
 
-    if(Mess.message == ""):
+    if(Mess.message == "" or len(Mess.message) >160):
         raise HTTPException(400,detail="bad Request")
 
     query = messages.update().\
