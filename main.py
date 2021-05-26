@@ -3,16 +3,17 @@ from sqlalchemy.sql.schema import Column
 from sqlalchemy.sql.sqltypes import String
 from fastapi import FastAPI, Depends
 import databases, sqlalchemy, uuid
-from models import MessagesList, MessageEntry, MessageUpdate, MessageDelete
+from pydantic import BaseModel, Field
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import List
 from fastapi import HTTPException
 import os
 
 
-# SQLALCHEMY_DATABASE_URL = "postgresql://usertest:usertest222@127.0.0.1:5432/dbtest"  
+
+#SQLALCHEMY_DATABASE_URL = "postgresql://usertest:usertest222@127.0.0.1:5432/dbtest" 
 # DATABASE_URL = "sqlite:///dbtest.db"
-SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL"  )#connect to postgresql
+SQLALCHEMY_DATABASE_URL = os.getenv("SQLALCHEMY_DATABASE_URL")  #connect to postgresql 
 
 database = databases.Database(SQLALCHEMY_DATABASE_URL)
 metadata = sqlalchemy.MetaData()
@@ -30,6 +31,23 @@ engine = sqlalchemy.create_engine(
     SQLALCHEMY_DATABASE_URL
 )
 metadata.create_all(engine)
+
+
+class MessagesList(BaseModel):
+    id: str
+    message: str
+    counter: int
+
+class MessageEntry(BaseModel):
+    message: str = Field(...,example = "hello world")
+
+class MessageUpdate(BaseModel):
+    id : str = Field(...,example = "Ente your id")
+    message: str = Field(...,example = "hello world")
+
+
+class MessageDelete(BaseModel):
+    id: str = Field(..., example = "enter your id")
 
 
 app = FastAPI()
